@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 export default function AddStockDialog() {
   const queryClient = useQueryClient()
@@ -16,20 +17,37 @@ export default function AddStockDialog() {
   const [name, setName] = useState("")
   const [open, setOpen] = useState(false)
 
-  const add = async () => {
-    if (!session?.user?.email) return
+const add = async () => {
+  if (!session?.user?.email || !symbol) return
 
-    await api.post("/watchlist", {
-      symbol: symbol.toUpperCase(),
-      name,
-      email: session.user.email,
-    })
+  const id = toast.loading("Adding stock...")
+
+  try {
+    await api.post( "/watchlist", {
+        symbol: symbol.toUpperCase(),
+        name
+      },
+      {
+        headers: {
+          "x-user-email": session.user.email
+        }
+      }
+    )
 
     setSymbol("")
     setName("")
     setOpen(false)
+
     queryClient.invalidateQueries({ queryKey: ["watchlist"] })
+
+    toast.success(`${symbol.toUpperCase()} added to watchlist`, { id })
+  } catch {
+    toast.error("Failed to add stock", {
+      id
+    })
   }
+}
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

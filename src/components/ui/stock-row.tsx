@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+
 
 export default function StockRow({ stock }: any) {
   const { data: session } = useSession()
@@ -12,12 +14,21 @@ export default function StockRow({ stock }: any) {
 const remove = async () => {
   if (!session?.user?.email || !stock?.symbol) return
 
-  await api.delete(`/watchlist/${stock.symbol}`, {
-    params: { email: session.user.email },
-  })
+  try {
+    await api.delete(`/watchlist/${stock.symbol}`, {
+      headers: {
+        "x-user-email": session.user.email
+      }
+    })
 
-  queryClient.invalidateQueries({ queryKey: ["watchlist"] })
+    queryClient.invalidateQueries({ queryKey: ["watchlist"] })
+
+    toast.success(`${stock.symbol} removed from watchlist`)
+  } catch {
+    toast.error("Failed to remove stock")
+  }
 }
+
 
 
   return (
