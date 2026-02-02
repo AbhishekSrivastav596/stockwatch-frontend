@@ -8,5 +8,6 @@ export const useWatchlist = () =>
       const res = await api.get("/watchlist")
       return res.data
     },
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true
   })
